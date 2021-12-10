@@ -23,16 +23,30 @@ When(/^I expect element: "([^"]*)" (text|value): "([^"]*)"$/, async function (se
         .toEqual(text)
 });
 
-When('I go to {string} menu item', function (item) {
-    // add implementation here
+When(/^I go to "([^"]*)" menu item$/, async function (item) {
+    await $(`//a[contains(.,"${item}")]`).click();
 });
 
-When(/^I fill form:$/, function (formYaml) {
+When(/^I fill form:$/, async function (formYaml) {
     const formData = YAML.parse(formYaml);
-    console.log({ formData });
-    // add implementation here
+    for (const field in formData) {
+        await $('#' + field).setValue(formData[field]);
+    }
+    await $('//button[contains(., "Create")]').click();
 });
 
-When('I login as: {string}, {string}', function (login, password) {
-    // add implementation here
+Then(/^I check email: "([^"]*)" of created user$/, async function (email) {
+    const userRow = await $(`//*[text()="${email}"]/..`);
+    expect(await userRow.$('(.//div[@class="tabulator-cell"])[1]').getText()).toEqual(email);
+});
+
+When(/^I login as: \"([^\"]*)\", \"([^\"]*)\"$/, async function (login, password) {
+    await $('#login').setValue(login);
+    await $('#password').setValue(password);
+    await $('button').click();
+    await $(`//a[@title="${login}"]`).waitForDisplayed();
+});
+
+Then(/^I get "([^"]*)" error message$/, async function (message) {
+    expect(await $('#error').getText()).toEqual(message);
 });
